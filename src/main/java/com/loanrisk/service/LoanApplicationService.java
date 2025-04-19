@@ -6,8 +6,12 @@ import com.loanrisk.dto.GetLoanResponse;
 import com.loanrisk.entity.Customer;
 import com.loanrisk.entity.LoanApplication;
 import com.loanrisk.entity.ScoringRule;
+import com.loanrisk.exception.CustomerNotFoundException;
+import com.loanrisk.exception.LoanApplicationNotFoundException;
 import com.loanrisk.repository.CustomerRepository;
 import com.loanrisk.repository.LoanApplicationRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +25,8 @@ import java.util.UUID;
 
 @Service
 public class LoanApplicationService {
+
+    private static final Logger logger = LoggerFactory.getLogger(LoanApplicationService.class);
 
     private final LoanApplicationRepository loanApplicationRepository;
     private final CustomerRepository customerRepository;
@@ -36,13 +42,10 @@ public class LoanApplicationService {
     }
 
     public ApplyLoanResponse applyForLoan(ApplyLoanRequest request) {
-        Optional<Customer> optionalCustomer = customerRepository.findById(request.getCustomerId());
+        logger.info("Received loan application request for customer ID: {}", request.getCustomerId());
 
-        if (optionalCustomer.isEmpty()) {
-            throw new RuntimeException("Customer not found with ID: " + request.getCustomerId());
-        }
-
-        Customer customer = optionalCustomer.get();
+        Customer customer = customerRepository.findById(request.getCustomerId())
+                .orElseThrow(() -> new CustomerNotFoundException(request.getCustomerId()));
 
         LoanApplication loanApplication = new LoanApplication();
         loanApplication.setCustomer(customer);
@@ -74,6 +77,7 @@ public class LoanApplicationService {
         loanApplication.setExplanation(String.join(", ", triggeredRulesExplanation));
 
         LoanApplication savedLoanApplication = loanApplicationRepository.save(loanApplication);
+        logger.info("Loan application saved with ID: {}", savedLoanApplication.getId());
 
         ApplyLoanResponse response = new ApplyLoanResponse();
         response.setLoanId(savedLoanApplication.getId());
@@ -86,13 +90,10 @@ public class LoanApplicationService {
     }
 
     public GetLoanResponse getLoanApplicationById(UUID id) {
-        Optional<LoanApplication> optionalLoanApplication = loanApplicationRepository.findById(id);
+        logger.info("Fetching loan application with ID: {}", id);
+        LoanApplication loanApplication = loanApplicationRepository.findById(id)
+                .orElseThrow(() -> new LoanApplicationNotFoundException(id));
 
-        if (optionalLoanApplication.isEmpty()) {
-            return null;
-        }
-
-        LoanApplication loanApplication = optionalLoanApplication.get();
         GetLoanResponse response = new GetLoanResponse();
         response.setLoanId(loanApplication.getId());
         response.setCustomerId(loanApplication.getCustomer().getId());
@@ -106,6 +107,7 @@ public class LoanApplicationService {
         response.setExplanation(loanApplication.getExplanation());
         response.setCreatedAt(loanApplication.getCreatedAt());
 
+        logger.info("Successfully fetched loan application with ID: {}", id);
         return response;
     }
 
@@ -123,17 +125,24 @@ public class LoanApplicationService {
                     return compare(age, operator, ruleAge);
                 // Add cases for other fields (e.g., loanApplication.amount, customer.creditScore, computed fields)
                 default:
-                    // Handle unknown fields or throw an exception
+                    logger.warn("Unknown rule field: {}", field);
                     return false;
             }
         } catch (NumberFormatException e) {
-            // Handle invalid ruleValue for numeric comparisons
+            logger.error("Invalid rule value for numeric comparison: {}", ruleValue, e);
+            return false;
+        } catch (Exception e) {
+            logger.error("Error evaluating rule: {}", rule.getName(), e);
             return false;
         }
     }
 
     private <T extends Comparable<T>> boolean compare(T value1, String operator, T value2) {
         // Basic comparison logic - needs to handle different data types
+        if (value1 == null || value2 == null) {
+            logger.warn("Attempted to compare null values: value1={}, value2={}", value1, value2);
+            return false; // Cannot compare nulls
+        }
         switch (operator) {
             case ">":
                 return value1.compareTo(value2) > 0;
@@ -148,7 +157,7 @@ public class LoanApplicationService {
             case "<=":
                 return value1.compareTo(value2) <= 0;
             default:
-                // Handle unknown operators or throw an exception
+                logger.warn("Unknown comparison operator: {}", operator);
                 return false;
         }
     }

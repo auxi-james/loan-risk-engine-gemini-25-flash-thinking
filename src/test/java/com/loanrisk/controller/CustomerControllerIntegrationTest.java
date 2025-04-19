@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.loanrisk.dto.CreateCustomerRequest;
 import com.loanrisk.entity.Customer;
 import com.loanrisk.repository.CustomerRepository;
+import com.loanrisk.repository.LoanApplicationRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,14 @@ public class CustomerControllerIntegrationTest {
     private CustomerRepository customerRepository;
 
     @Autowired
+    private LoanApplicationRepository loanApplicationRepository;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
+        loanApplicationRepository.deleteAll();
         customerRepository.deleteAll();
     }
 

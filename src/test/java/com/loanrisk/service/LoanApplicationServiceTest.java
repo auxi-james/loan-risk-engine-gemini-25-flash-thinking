@@ -6,6 +6,7 @@ import com.loanrisk.dto.GetLoanResponse;
 import com.loanrisk.entity.Customer;
 import com.loanrisk.entity.LoanApplication;
 import com.loanrisk.entity.ScoringRule;
+import com.loanrisk.exception.LoanApplicationNotFoundException;
 import com.loanrisk.repository.CustomerRepository;
 import com.loanrisk.repository.LoanApplicationRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -270,16 +271,15 @@ class LoanApplicationServiceTest {
     }
 
     @Test
-    void getLoanApplicationById_NonExistingLoan() {
+    void getLoanApplicationById_NonExistingLoan_ThrowsException() {
         // Arrange
         UUID nonExistingId = UUID.randomUUID();
         when(loanApplicationRepository.findById(nonExistingId)).thenReturn(Optional.empty());
 
-        // Act
-        GetLoanResponse response = loanApplicationService.getLoanApplicationById(nonExistingId);
-
-        // Assert
-        assertNull(response);
+        // Act & Assert
+        assertThrows(LoanApplicationNotFoundException.class, () -> {
+            loanApplicationService.getLoanApplicationById(nonExistingId);
+        });
 
         verify(loanApplicationRepository, times(1)).findById(nonExistingId);
     }

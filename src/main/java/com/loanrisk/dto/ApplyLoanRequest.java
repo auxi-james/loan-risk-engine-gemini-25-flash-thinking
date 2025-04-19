@@ -2,16 +2,20 @@ package com.loanrisk.dto;
 
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Min;
 
 public class ApplyLoanRequest {
 
-    @NotNull
+    @NotNull(message = "Customer ID is required")
     private Long customerId;
 
-    @NotNull
+    @NotNull(message = "Loan amount is required")
+    @DecimalMin(value = "0.01", message = "Loan amount must be greater than 0")
     private BigDecimal loanAmount;
 
-    @NotNull
+    @NotNull(message = "Loan term is required")
+    @Min(value = 1, message = "Loan term must be at least 1 month")
     private Integer loanTermMonths;
 
     // Getters and Setters

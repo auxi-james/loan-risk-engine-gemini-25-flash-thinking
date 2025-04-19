@@ -7,20 +7,20 @@ import java.time.LocalDate;
 
 public class CreateCustomerRequest {
 
-    @NotBlank
+    @NotBlank(message = "First name is required")
     private String firstName;
 
-    @NotBlank
+    @NotBlank(message = "Last name is required")
     private String lastName;
 
-    @NotNull
-    @Past
+    @NotNull(message = "Date of birth is required")
+    @Past(message = "Date of birth must be in the past")
     private LocalDate dateOfBirth;
 
-    @NotBlank
+    @NotBlank(message = "Address is required")
     private String address;
 
-    @NotBlank
+    @NotBlank(message = "Email is required")
     private String email;
 
     // Getters and Setters
