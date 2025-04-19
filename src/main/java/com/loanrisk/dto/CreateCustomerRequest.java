@@ -1,39 +1,29 @@
-package com.loanrisk.entity;
+package com.loanrisk.dto;
 
-import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
 import java.time.LocalDate;
 
-@Entity
-public class Customer {
+public class CreateCustomerRequest {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
+    @NotBlank
     private String firstName;
 
-    @Column(nullable = false)
+    @NotBlank
     private String lastName;
 
-    @Column(nullable = false)
+    @NotNull
+    @Past
     private LocalDate dateOfBirth;
 
-    @Column(nullable = false)
+    @NotBlank
     private String address;
 
-    @Column(nullable = false)
+    @NotBlank
     private String email;
 
     // Getters and Setters
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public String getFirstName() {
         return firstName;
     }
@@ -72,16 +62,5 @@ public class Customer {
 
     public void setEmail(String email) {
         this.email = email;
-    }
-
-    @Override
-    public String toString() {
-        return "Customer{" +
-               "id=" + id +
-               ", firstName='" + firstName + '\'' +
-               ", lastName='" + lastName + '\'' +
-               ", dateOfBirth=" + dateOfBirth +
-               ", address='" + address + '\'' +
-               '}';
     }
 }
