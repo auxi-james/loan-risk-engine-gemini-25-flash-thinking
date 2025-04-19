@@ -9,7 +9,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +28,8 @@ public class LoanApplicationRepositoryIntegrationTest {
         customer.setFirstName("John");
         customer.setLastName("Doe");
         customer.setAddress("123 Main St");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(java.time.LocalDate.of(1990, 5, 15));
+        customer.setEmail("john.doe@example.com");
         entityManager.persist(customer);
 
         LoanApplication loanApplication = new LoanApplication();
@@ -60,7 +60,8 @@ public class LoanApplicationRepositoryIntegrationTest {
         customer.setFirstName("Jane");
         customer.setLastName("Doe");
         customer.setAddress("456 Oak Ave");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(java.time.LocalDate.of(1985, 10, 20));
+        customer.setEmail("jane.doe@example.com");
         entityManager.persist(customer);
 
         LoanApplication loanApplication = new LoanApplication();

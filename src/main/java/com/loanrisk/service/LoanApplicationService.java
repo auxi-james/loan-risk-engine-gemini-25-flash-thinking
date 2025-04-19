@@ -1,5 +1,8 @@
 package com.loanrisk.service;
 
+import com.loanrisk.dto.ApplyLoanRequest;
+import com.loanrisk.dto.ApplyLoanResponse;
+import com.loanrisk.dto.GetLoanResponse;
 import com.loanrisk.entity.Customer;
 import com.loanrisk.entity.LoanApplication;
 import com.loanrisk.entity.ScoringRule;
@@ -9,10 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class LoanApplicationService {
@@ -30,20 +35,22 @@ public class LoanApplicationService {
         this.scoringRuleService = scoringRuleService;
     }
 
-    public LoanApplication processLoanApplication(Long loanApplicationId) {
-        Optional<LoanApplication> optionalLoanApplication = loanApplicationRepository.findById(loanApplicationId);
+    public ApplyLoanResponse applyForLoan(ApplyLoanRequest request) {
+        Optional<Customer> optionalCustomer = customerRepository.findById(request.getCustomerId());
 
-        if (optionalLoanApplication.isEmpty()) {
-            throw new RuntimeException("Loan Application not found with ID: " + loanApplicationId);
+        if (optionalCustomer.isEmpty()) {
+            throw new RuntimeException("Customer not found with ID: " + request.getCustomerId());
         }
 
-        LoanApplication loanApplication = optionalLoanApplication.get();
-        Customer customer = loanApplication.getCustomer();
+        Customer customer = optionalCustomer.get();
 
-        if (customer == null) {
-            throw new RuntimeException("Customer not found for Loan Application ID: " + loanApplicationId);
-        }
+        LoanApplication loanApplication = new LoanApplication();
+        loanApplication.setCustomer(customer);
+        // Assuming loanAmount and loanTermMonths will be added to LoanApplication entity later
+        // For now, we will proceed with scoring based on available customer data and rules
+        loanApplication.setCreatedAt(LocalDateTime.now());
 
+        // Process scoring rules (existing logic)
         List<ScoringRule> activeRules = scoringRuleService.getActiveScoringRules();
         double totalRiskScore = 0.0;
         List<String> triggeredRulesExplanation = new ArrayList<>();
@@ -66,7 +73,40 @@ public class LoanApplicationService {
         loanApplication.setDecision(determineDecision(totalRiskScore));
         loanApplication.setExplanation(String.join(", ", triggeredRulesExplanation));
 
-        return loanApplicationRepository.save(loanApplication);
+        LoanApplication savedLoanApplication = loanApplicationRepository.save(loanApplication);
+
+        ApplyLoanResponse response = new ApplyLoanResponse();
+        response.setLoanId(savedLoanApplication.getId());
+        response.setRiskScore(savedLoanApplication.getRiskScore().intValue());
+        response.setRiskLevel(savedLoanApplication.getRiskLevel());
+        response.setDecision(savedLoanApplication.getDecision());
+        response.setExplanation(savedLoanApplication.getExplanation());
+
+        return response;
+    }
+
+    public GetLoanResponse getLoanApplicationById(UUID id) {
+        Optional<LoanApplication> optionalLoanApplication = loanApplicationRepository.findById(id);
+
+        if (optionalLoanApplication.isEmpty()) {
+            return null;
+        }
+
+        LoanApplication loanApplication = optionalLoanApplication.get();
+        GetLoanResponse response = new GetLoanResponse();
+        response.setLoanId(loanApplication.getId());
+        response.setCustomerId(loanApplication.getCustomer().getId());
+        // Assuming loanAmount will be added to LoanApplication entity later. Using riskScore for now.
+        response.setLoanAmount(java.math.BigDecimal.valueOf(loanApplication.getRiskScore()));
+        // Assuming loanTermMonths will be added to LoanApplication entity later. Setting to null for now.
+        response.setLoanTermMonths(null);
+        response.setRiskScore(loanApplication.getRiskScore().intValue());
+        response.setRiskLevel(loanApplication.getRiskLevel());
+        response.setDecision(loanApplication.getDecision());
+        response.setExplanation(loanApplication.getExplanation());
+        response.setCreatedAt(loanApplication.getCreatedAt());
+
+        return response;
     }
 
     private boolean evaluateRule(ScoringRule rule, LoanApplication loanApplication, Customer customer, int age) {

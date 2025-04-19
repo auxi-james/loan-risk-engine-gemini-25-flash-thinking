@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 public class LoanApplication {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private java.util.UUID id;
 
     @ManyToOne
     @JoinColumn(name = "customer_id", nullable = false)
@@ -23,11 +23,11 @@ public class LoanApplication {
 
     // Getters and Setters
 
-    public Long getId() {
+    public java.util.UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(java.util.UUID id) {
         this.id = id;
     }
 

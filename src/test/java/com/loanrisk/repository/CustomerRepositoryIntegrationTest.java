@@ -7,7 +7,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,14 +24,16 @@ public class CustomerRepositoryIntegrationTest {
         Customer customer = new Customer();
         customer.setFirstName("John");
         customer.setLastName("Doe");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(LocalDate.of(1990, 5, 15));
         customer.setAddress("123 Main St");
+        customer.setEmail("john.doe@example.com");
 
         Customer savedCustomer = customerRepository.save(customer);
 
         assertThat(savedCustomer).isNotNull();
         assertThat(savedCustomer.getId()).isNotNull();
         assertThat(savedCustomer.getFirstName()).isEqualTo("John");
+        assertThat(savedCustomer.getEmail()).isEqualTo("john.doe@example.com");
     }
 
     @Test
@@ -39,8 +41,9 @@ public class CustomerRepositoryIntegrationTest {
         Customer customer = new Customer();
         customer.setFirstName("Jane");
         customer.setLastName("Doe");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(LocalDate.of(1985, 10, 20));
         customer.setAddress("456 Oak Ave");
+        customer.setEmail("jane.doe@example.com");
 
         Customer savedCustomer = customerRepository.save(customer);
 
@@ -55,8 +58,9 @@ public class CustomerRepositoryIntegrationTest {
         Customer customer = new Customer();
         customer.setFirstName("Peter");
         customer.setLastName("Jones");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(LocalDate.of(1992, 3, 10));
         customer.setAddress("789 Pine Ln");
+        customer.setEmail("peter.jones@example.com");
 
         Customer savedCustomer = customerRepository.save(customer);
 
@@ -71,8 +75,9 @@ public class CustomerRepositoryIntegrationTest {
         Customer customer = new Customer();
         customer.setFirstName("Mary");
         customer.setLastName("Smith");
-        customer.setDateOfBirth(new Date());
+        customer.setDateOfBirth(LocalDate.of(1995, 7, 25));
         customer.setAddress("987 Cedar Rd");
+        customer.setEmail("mary.smith@example.com");
 
         Customer savedCustomer = customerRepository.save(customer);
         Long customerId = savedCustomer.getId();
